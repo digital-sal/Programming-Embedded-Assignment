@@ -1,0 +1,166 @@
+/*
+ * CE865 Assignment 1 Skeleton
+ */
+/*
+ * Including all the related header files
+ * */
+
+
+#include <config/AT91SAM7S256.h>
+#include <board/LED-lib.h> /* Provide access to LEDs */
+#include <board/Button-lib.h> /* Provide access to buttons */
+#include <board/SevenSegmentDisplay.h> /* Provide access to 7 segment display functions */
+#include <atmel/pit.h>
+#include <atmel/aic.h>
+#include <alternateled.h>
+#include <delay.h>
+#include <randomledfunc.h>
+#include <interruptprocess.h>
+/*
+ * Defining Pre-processors for our code
+ * */
+
+
+
+
+#define LED_DATA_LINE AT91C_PIO_PA25 // Data line (Output)
+#define LED_CLOCK_LINE AT91C_PIO_PA24 // Clock line (Output)
+#define SECONDS DISPLAY1
+#define RIGHT_DISPLAY DISPLAY2
+#define MIDDLE_DISPLAY DISPLAY3
+#define LEFT_DISPLAY DISPLAY4
+#define PIT_PERIOD 2000 // interrupt at 20 milliseconds (50Hz)
+
+short Digit[] = {
+  0x3f,
+  0x06,
+  0x5b,
+  0x4f,
+  0x66,
+  0x6d,
+  0x7c,
+  0x07,
+  0x7f,
+  0x67,
+  0x80
+}; // Pattern for displaying 0,1,2,3,4,5,6,7,8,9 and . on the seven segment display
+short seconds, left_bar_display, middle_bar_display, right_bar_display, hertz, seconds_two, hertz_two, hertz_three, hertz_four, seconds_three, seconds_four, i;
+int rand_led; // random variable for random number generator
+
+/*
+ * Interrupt Service Routine*/
+void ISR_System(void) {
+  PIT_GetPIVR();
+  interruptprocess();
+ }
+
+
+/*
+ * Main function starts from here*/
+int main() {
+  short my_leds[8] = {
+    LED1,
+    LED2,
+    LED3,
+    LED4,
+    LED5,
+    LED6,
+    LED7,
+    LED8
+  };
+  short my_buttons[8] = {
+    BUTTON1,
+    BUTTON2,
+    BUTTON3,
+    BUTTON4,
+    BUTTON5,
+    BUTTON6,
+    BUTTON7,
+    BUTTON8
+  };
+
+  /*
+   * Configure the 7 segment display and display 0s on the Seven Segment Display
+   * */
+  Configure7SegmentDisplay();
+  Set7SegmentDisplayValue(SECONDS, Digit[0]); // Displays the digit 0
+  Set7SegmentDisplayValue(RIGHT_DISPLAY, Digit[0]); // Sets the display to blank
+  Set7SegmentDisplayValue(MIDDLE_DISPLAY, Digit[0]);
+  Set7SegmentDisplayValue(LEFT_DISPLAY, Digit[0] + Digit[10]);
+  while (1) {
+
+    /*
+     * First clear all the variables
+     * */
+    hertz = 0;
+    hertz_two = 0;
+    hertz_three = 0;
+    hertz_four = 0;
+    seconds = 0;
+    seconds_two = 0;
+    seconds_three = 0;
+    seconds_four = 0;
+    seconds = 0;
+    left_bar_display = 0;
+    middle_bar_display = 0;
+    right_bar_display = 0;
+
+    /*
+     * For blinking LEDs at the start and generating a random number
+     * */
+    while (IsButtonReleased(BUTTON1)) {
+    	alternateled();
+    	randomnumfunc();   }
+
+    /*
+     * After the Button 1 is pressed, turns on all LEDS red
+     * */
+    for (short i = 0; i < 8; i++) {
+      SetLEDcolor(my_leds[i], RED); // Turns on ALL LEDs RED
+    }
+
+    /*
+     * Turns off LEDs in opposite direction and detects if user presses button for false detection
+     * */
+    for (short i = 8; i >= 0; i--) {
+      Set7SegmentDisplayValue(SECONDS, Digit[0]); // Displays the digit 0
+      Set7SegmentDisplayValue(RIGHT_DISPLAY, Digit[0]); // Sets the display to blank
+      Set7SegmentDisplayValue(MIDDLE_DISPLAY, Digit[0]);
+      Set7SegmentDisplayValue(LEFT_DISPLAY, Digit[0] + Digit[10]); // Sets the display to blank and places dot after SECONDS
+      SetLEDcolor(my_leds[i], OFF); // Turns of LEDs step by step in opposite direction
+
+      delay_ms(1000); // Turns off each LED after every second
+
+      while (IsButtonPressed(my_buttons[0]) || IsButtonPressed(my_buttons[1]) ||
+        IsButtonPressed(my_buttons[2]) || IsButtonPressed(my_buttons[3]) || IsButtonPressed(my_buttons[4]) || IsButtonPressed(my_buttons[5]) ||
+        IsButtonPressed(my_buttons[6]) || IsButtonPressed(my_buttons[7])) {
+        delay_ms(100);
+      }    }
+    /*
+     * First we need to configure the additional functionality required.
+     */
+    PIT_Init(PIT_PERIOD, BOARD_MCK / 10000000);
+    AIC_DisableIT(AT91C_ID_SYS);
+    AIC_ConfigureIT(AT91C_ID_SYS, 0, ISR_System);
+    AIC_EnableIT(AT91C_ID_SYS);
+    PIT_EnableIT();
+    PIT_Enable();
+
+    /*
+     * When the random generated button is pressed it moves out of the loop and again starts the main function
+     * */
+    while (IsButtonReleased(my_buttons[rand_led]) & ((seconds_four< 9)|(seconds_three< 9)|(seconds_two< 9)|(seconds< 9))){
+      SetLEDcolor(my_leds[rand_led], GREEN); // for turning ON random LED and then waiting for user to press button
+      Set7SegmentDisplayValue(SECONDS, Digit[seconds]);
+      Set7SegmentDisplayValue(RIGHT_DISPLAY, Digit[seconds_two]);
+      Set7SegmentDisplayValue(MIDDLE_DISPLAY, Digit[seconds_three]);
+      Set7SegmentDisplayValue(LEFT_DISPLAY, Digit[seconds_four] + Digit[10]);
+    }
+
+
+
+    AIC_DisableIT(AT91C_ID_SYS);
+
+  }
+  return 0;
+}
