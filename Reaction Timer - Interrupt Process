@@ -1,0 +1,55 @@
+/*
+ * interruprocess.c
+ *
+ *  Created on: 21 Nov 2019
+ *      Author: mt19120
+ */
+
+
+ /*I have changed the PIT Period to 2000 so that interrupt is called faster*/
+short hertz,hertz_two,hertz_three,hertz_four,seconds,seconds_two,seconds_three,seconds_four;
+    /*This if condition is for displaying in the right most display. After 5 interrupts it updates the value and displays on the screen.*/
+void interruptprocess(){
+    if (++hertz == 5) {
+      hertz = 0;
+      if (++seconds == 10)
+        seconds = 0;
+      if (seconds_four == 9) // This detects if SECONDS is equal to 9 then it display 9 on the last right most segment display
+      {
+        seconds = 9;
+      }
+    }
+    /*This is right_display and is called after 50 interrupts.*/
+
+    if (++hertz_two == 50) // This is for counting right display count, 50 interrupts equal to value shown in right display
+    {
+      hertz_two = 0;
+      if (++seconds_two == 10)
+        seconds_two = 0;
+      if (seconds_four == 9) // This detects if SECONDS is equal to 9 then it display 9 on the last right most segment display
+      {
+        seconds_two = 9;
+      }
+    }
+    /*This is middle_display and is called after 500 interrupts.*/
+
+    if (++hertz_three == 500) {
+      hertz_three = 0;
+      if (++seconds_three == 10)
+        seconds_three = 0;
+      if (seconds_four == 9) // This detects if SECONDS is equal to 9 then it display 9 on the last right most segment display
+      {
+        seconds_three = 9;
+      }
+    }
+
+    /*This is middle_display and is called after 5000 interrupts and counts seconds.*/
+
+    if (++hertz_four == 5000) {
+      hertz_four = 0;
+
+      if (++seconds_four == 10)
+        seconds_four = 9;
+
+    }
+}
