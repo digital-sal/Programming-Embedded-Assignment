@@ -1,0 +1,33 @@
+/*
+ * faslestart.c
+ *
+ *  Created on: 19 Nov 2019
+ *      Author: mt19120
+ */
+#include <board/Button-lib.h> /* Provide access to buttons */
+
+#include <config/AT91SAM7S256.h>
+
+short my_buttons[8] = {
+  BUTTON1,
+  BUTTON2,
+  BUTTON3,
+  BUTTON4,
+  BUTTON5,
+  BUTTON6,
+  BUTTON7,
+  BUTTON8
+};
+
+void falsestart() {
+
+  /*
+   * This function detects if the user has pressed the button while the countdown of led is in reverse order. By using the OR operator we can detect the button pressed and it will halt
+   * the program
+   * */
+  while (IsButtonPressed(my_buttons[0]) || IsButtonPressed(my_buttons[1]) ||
+    IsButtonPressed(my_buttons[2]) || IsButtonPressed(my_buttons[3]) || IsButtonPressed(my_buttons[4]) || IsButtonPressed(my_buttons[5]) ||
+    IsButtonPressed(my_buttons[6]) || IsButtonPressed(my_buttons[7])) {
+    delay_ms(100);
+  }
+}
