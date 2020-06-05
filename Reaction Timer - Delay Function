@@ -1,0 +1,15 @@
+/*
+ * delay.c
+ *
+ *  Created on: 19 Nov 2019
+ *      Author: mt19120
+ */
+
+
+void delay_ms(short ms)
+{
+	volatile short loop;
+
+	while (ms-- > 0)
+		for (loop = 0; loop < 2100; loop++);
+}
