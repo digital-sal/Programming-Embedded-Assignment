@@ -1,0 +1,50 @@
+/*
+ * alternateled.c
+ *
+ *  Created on: 19 Nov 2019
+ *      Author: mt19120
+ */
+#include <config/AT91SAM7S256.h>
+
+#include <delay.h>
+
+#define LED_DATA_LINE AT91C_PIO_PA25 // Data line (Output)
+#define LED_CLOCK_LINE AT91C_PIO_PA24 // Clock line (Output)
+
+void alternateled() {
+
+  short led;
+  AT91C_BASE_PIOA -> PIO_PER = (AT91C_PIO_PA24 | AT91C_PIO_PA25 | AT91C_PIO_PA26 | AT91C_PIO_PA27 | AT91C_PIO_PA28 | AT91C_PIO_PA29);
+  AT91C_BASE_PIOA -> PIO_OER = (AT91C_PIO_PA24 | AT91C_PIO_PA25);
+  AT91C_BASE_PIOA -> PIO_ODR = (AT91C_PIO_PA26 | AT91C_PIO_PA27 | AT91C_PIO_PA28 | AT91C_PIO_PA29);
+  AT91C_BASE_PIOA -> PIO_IFER = (AT91C_PIO_PA26 | AT91C_PIO_PA27 | AT91C_PIO_PA28 | AT91C_PIO_PA29);
+  AT91C_BASE_PIOA -> PIO_SODR = LED_DATA_LINE;
+
+  /*
+   * For clearing all the LEDs
+   * */
+  for (led = 0; led < 16; led++) {
+    AT91C_BASE_PIOA -> PIO_SODR = LED_CLOCK_LINE;
+    AT91C_BASE_PIOA -> PIO_CODR = LED_CLOCK_LINE;
+  }
+
+  /*
+   * Turns ON the first LED, then after 200ms delay turns it OFF and the clock line moves to the next LED*/
+  AT91C_BASE_PIOA -> PIO_CODR = LED_DATA_LINE;
+
+  AT91C_BASE_PIOA -> PIO_SODR = LED_CLOCK_LINE;
+  AT91C_BASE_PIOA -> PIO_CODR = LED_CLOCK_LINE;
+  delay_ms(200);
+  AT91C_BASE_PIOA -> PIO_SODR = LED_DATA_LINE;
+  AT91C_BASE_PIOA -> PIO_SODR = LED_CLOCK_LINE;
+  AT91C_BASE_PIOA -> PIO_CODR = LED_CLOCK_LINE;
+  delay_ms(200);
+
+  /*
+   * Clears all the rest of the LEDs except first 2 because we want to blink only first 2 leds
+   * */
+  for (led = 0; led < 15; led++) {
+    AT91C_BASE_PIOA -> PIO_SODR = LED_CLOCK_LINE;
+    AT91C_BASE_PIOA -> PIO_CODR = LED_CLOCK_LINE;
+  }
+}
